@@ -1,0 +1,14 @@
+bin/Debug/OSCGestureClassifier.exe
+GestureClassification/.dep.inc
+obj/Debug/GestureClassification/DtwPsClassifier.o
+obj/Debug/GestureClassification/FeatureTracking.o
+obj/Debug/GestureClassification/OSCGestureClassifier.o
+obj/Debug/GestureClassification/RepClassifier.o
+obj/Debug/GestureClassification/Template.o
+obj/Debug/lbimproved/unittesting.o
+obj/Debug/lbimproved/vector_test.o
+obj/Debug/utils/AlphaFilter.o
+obj/Debug/utils/HistogramBuffer.o
+obj/Debug/utils/utils.o
+obj/Debug/YIN/YIN.o
+OSCGestureClassifier.depend
