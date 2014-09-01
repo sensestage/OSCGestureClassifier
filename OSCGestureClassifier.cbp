@@ -10,10 +10,16 @@
 				<Option output="bin/Debug/OSCGestureClassifier" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="cygwin" />
 				<Compiler>
-					<Add option="-g" />
+					<Add option="-std=c++11" />
+					<Add option="-DWIN32" />
+					<Add directory="C:/Users/Bas/Desktop/liblo-0.28" />
 				</Compiler>
+				<Linker>
+					<Add library="C:\Users\Bas\Desktop\liblo-0.28\src\.libs\liblo.a" />
+					<Add directory="C:/liblo-0.28" />
+				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option output="bin/Release/OSCGestureClassifier" prefix_auto="1" extension_auto="1" />
@@ -22,6 +28,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-std=c++11" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -29,15 +36,36 @@
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-Wall" />
+			<Add option="-std=c++11" />
 			<Add option="-fexceptions" />
 		</Compiler>
-		<Unit filename="main.cpp" />
+		<Unit filename="GestureClassification/AbstractGestureClassifier.h" />
+		<Unit filename="GestureClassification/DtwPsClassifier.cpp" />
+		<Unit filename="GestureClassification/DtwPsClassifier.h" />
+		<Unit filename="GestureClassification/OSCGestureClassifier.cpp" />
+		<Unit filename="GestureClassification/RepClassifier.cpp" />
+		<Unit filename="GestureClassification/RepClassifier.h" />
+		<Unit filename="GestureClassification/Template.cpp" />
+		<Unit filename="GestureClassification/Template.h" />
+		<Unit filename="YIN/YIN.cpp" />
+		<Unit filename="YIN/YIN.h" />
+		<Unit filename="lbimproved/dtw.h" />
+		<Unit filename="lbimproved/querystrategy.h" />
+		<Unit filename="lbimproved/rtreebased.h" />
+		<Unit filename="lbimproved/vectordtw.h" />
+		<Unit filename="utils/AlphaFilter.cpp" />
+		<Unit filename="utils/AlphaFilter.h" />
+		<Unit filename="utils/HistogramBuffer.cpp" />
+		<Unit filename="utils/HistogramBuffer.h" />
+		<Unit filename="utils/utils.cpp" />
+		<Unit filename="utils/utils.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />
 			<debugger />
-			<lib_finder disable_auto="1" />
+			<lib_finder disable_auto="1">
+				<lib name="liblo" />
+			</lib_finder>
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

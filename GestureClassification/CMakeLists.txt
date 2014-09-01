@@ -10,6 +10,7 @@ set(gestureclassification_SRCS
   DtwPsClassifier.cpp
   RepClassifier.cpp
   Template.cpp
+  OSCGestureClassifier.cpp
 )
 
 add_library( GestureClassification STATIC ${gestureclassification_SRCS} )

@@ -12,3 +12,7 @@ obj/Debug/utils/HistogramBuffer.o
 obj/Debug/utils/utils.o
 obj/Debug/YIN/YIN.o
 OSCGestureClassifier.depend
+/OSCGestureClassifier.layout
+/bin
+/obj
+OSCGestureClassifier.exe.stackdump

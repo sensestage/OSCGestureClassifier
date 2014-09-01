@@ -20,7 +20,6 @@ set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 add_subdirectory(lbimproved)
 add_subdirectory(YIN)
 add_subdirectory(GestureClassification)
-add_subdirectory(OSCGestureClassifier) 
 
 # if( EXAMPLE_OSC )
 #   add_subdirectory(osc)
