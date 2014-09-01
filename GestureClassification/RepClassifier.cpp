@@ -11,7 +11,7 @@
 #include "../YIN/YIN.h"
 //#include "../YIN/YIN.cpp"
 
-#include <Float.h>
+#include <float.h>
 
 RepClassifier::RepClassifier()
 {

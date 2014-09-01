@@ -143,7 +143,7 @@ void help()
     std::cout << "/OSCGestureClassifier/repetition i \t1 or 0 whether repetition is detected\n";
     std::cout << "/OSCGestureClassifier/interval i \tlength of the detected repetition \n";
     std::cout << "/OSCGestureClassifier/detected i \t1 or 0 whether template is detected \n";
-    std::cout << "/OSCGestureClassifier/index\ i \t\tindex of detected template\n";
+    std::cout << "/OSCGestureClassifier/index i \t\tindex of detected template\n";
     std::cout << "/OSCGestureClassifier/distance f \tdistace from gesture to detected template\n";
     std::cout << "/OSCGestureClassifier/phase f \t\tcurrent phase of performed gesture\n";
     std::cout << "/OSCGestureClassifier/learned i \tsize of vocabulary\n";

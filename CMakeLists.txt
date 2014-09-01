@@ -17,7 +17,8 @@ set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 # set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake_modules/")
 
 # directories
-add_subdirectory(lbimproved)
+# add_subdirectory(lbimproved)
+add_subdirectory(utils)
 add_subdirectory(YIN)
 add_subdirectory(GestureClassification)
 
