@@ -13,7 +13,7 @@
 using namespace std;
 
 // Parameter
-double scale = 100.;
+double scale = 100.; //Q: why do we need the scale?
 
 // State variables
 bool busy = false;
@@ -24,9 +24,15 @@ bool wasDetected = false;
 // Objects
 RepClassifier* rc;
 lo::Address* a;
+lo::ServerThread *st;
+
+bool shouldQuit = false;
 
 void data_handler(const char *path, const char *types, lo_arg **argv, int argc)
 {
+  //TODO: put all data in one bundle -- but: no way to send bundles from serverthread in cpp version of liblo...
+  //TODO: send messages from server thread -- no way to send bundles from serverthread?
+//     lo::Bundle() oscbundle;
     std::vector<float> vec;
     vec.push_back(argv[0]->f * scale);
     vec.push_back(argv[1]->f * scale);
@@ -40,30 +46,34 @@ void data_handler(const char *path, const char *types, lo_arg **argv, int argc)
         if(!wasDetected)
         {
             wasDetected = true;
-            a->send("/OSCGestureClassifier/detected","i",1);
+// 	    oscbundle->add( "/OSCGestureClassifier/detected", lo::Message( "i", 1 ) );
+            a->send_from( st, "/OSCGestureClassifier/detected","i",1);
         }
-        a->send(lo::Bundle(
-        {
-            {"/OSCGestureClassifier/index",lo::Message("i",rc->mostLikelyGesture())},
-            {"/OSCGestureClassifier/distance", lo::Message("f",rc->getDistance())},
-            {"/OSCGestureClassifier/phase", lo::Message("f",rc->getPhase())}
-        } ));
+        a->send_from( st, "/OSCGestureClassifier/index","i",rc->mostLikelyGesture());
+	a->send_from( st, "/OSCGestureClassifier/distance","f",rc->getDistance());
+	a->send_from( st, "/OSCGestureClassifier/phase","f",rc->getPhase());
+//         a->send_from( st, lo::Bundle(
+//         {
+//             {"/OSCGestureClassifier/index",lo::Message("i",rc->mostLikelyGesture())},
+//             {"/OSCGestureClassifier/distance", lo::Message("f",rc->getDistance())},
+//             {"/OSCGestureClassifier/phase", lo::Message("f",rc->getPhase())}
+//         } ));
     }
     else if(wasDetected)
     {
         wasDetected = false;
-        a->send("/OSCGestureClassifier/detected","i",0);
+        a->send_from(st, "/OSCGestureClassifier/detected","i",0);
     }
 
 
     if(wasLearning >= 0 && !rc->isLearning())
     {
         std::cout << "Gesture learned! Length is: " << rc->templateSize(wasLearning) << "\n";
-        a->send("/OSCGestureClassifier/learned", "i", wasLearning);
+        a->send_from( st, "/OSCGestureClassifier/learned", "i", wasLearning);
         wasLearning = -1;
 //        rc->learn();
     } else if ( rc->isLearning() ){
-	a->send("/OSCGestureClassifier/learning", "ii", rc->isLearning(), rc->isRecording() );
+	a->send_from( st, "/OSCGestureClassifier/learning", "ii", rc->isLearning(), rc->isRecording() );
     }
 
     if(rc->isSync())
@@ -71,16 +81,17 @@ void data_handler(const char *path, const char *types, lo_arg **argv, int argc)
         if(!wasSync)
         {
             wasSync = true;
-            a->send("/OSCGestureClassifier/repetition", "i", 1);
+            a->send_from( st, "/OSCGestureClassifier/repetition", "i", 1);
         }
-        a->send("/OSCGestureClassifier/interval","i",rc->repetitionInterval());
+        a->send_from( st, "/OSCGestureClassifier/interval","i",rc->repetitionInterval());
     }
     else if(wasSync)
     {
         wasSync = false;
-        a->send("/OSCGestureClassifier/repetition", "i", 0);
+        a->send_from( st, "/OSCGestureClassifier/repetition", "i", 0);
     }
 
+//     a->send_from( st, oscbundle );
     busy = false;
 }
 
@@ -97,6 +108,7 @@ void learngate_handler(const char *path, const char *types, lo_arg **argv, int a
 {
     busy = true;
     rc->setLearningGate( (bool)(argv[0]->i) );
+    cout << "Learning gate " << argv[0]->i << "\n";
     busy = false;
 }
 
@@ -122,6 +134,13 @@ void threshold_handler(const char *path, const char *types, lo_arg **argv, int a
     busy = true;
     rc->setRecognitionThreshold((double)argv[0]->f);
     cout << "threshold set to: " << argv[0]->f << "\n";
+    busy = false;
+}
+
+void quit_handler(const char *path, const char *types, lo_arg **argv, int argc)
+{
+    busy = true;
+    shouldQuit = true;
     busy = false;
 }
 
@@ -174,8 +193,9 @@ int main(int argc, char** argv)
         dest_port = argv[1];
 
 
-    lo::ServerThread st(myport);
-    if (!st.is_valid())
+//     lo::ServerThread 
+    st = new lo::ServerThread(myport);
+    if (!st->is_valid())
     {
         std::cout << "Nope." << std::endl;
         return 1;
@@ -183,7 +203,7 @@ int main(int argc, char** argv)
 
     a = new lo::Address("127.0.0.1", dest_port);
 
-    std::cout << "Comming in at: " << st.url() << std::endl;
+    std::cout << "Comming in at: " << st->url() << std::endl;
     std::cout << "Back at you at: " << a->url() << std::endl << std::endl;
     std::cout << "Press h for Help\n";
     std::cout << "Want to quit? Hit 'q' and Enter\n\n";
@@ -193,19 +213,22 @@ int main(int argc, char** argv)
     rc = new RepClassifier();
     rc->setResolution(4);
 
-    st.add_method("/data","fff",data_handler);
-    st.add_method("/learn","",learn_handler);
-    st.add_method("/learn/gate","i",learngate_handler);
-    st.add_method("/recognize","",recognize_handler);
-    st.add_method("/threshold","f",threshold_handler);
-    st.add_method("/clear","",clear_handler);
-    st.add_method(NULL,NULL,default_handler);
+    st->add_method("/data","fff",data_handler);
+    st->add_method("/learn","",learn_handler);
+    st->add_method("/learn/gate","i",learngate_handler);
+    st->add_method("/recognize","",recognize_handler);
+    st->add_method("/threshold","f",threshold_handler);
+    st->add_method("/clear","",clear_handler);
+    st->add_method("/quit","",quit_handler);
+    st->add_method(NULL,NULL,default_handler);
 
-    st.start();
+    st->start();
 
     char s[10];
+    
+    shouldQuit = false;
 
-    while (true)
+    while ( !shouldQuit )
     {
         std::cin.getline(s,10);
         if(strcmp(s,"q")==0)
