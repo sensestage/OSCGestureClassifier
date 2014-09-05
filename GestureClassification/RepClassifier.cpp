@@ -99,11 +99,11 @@ void RepClassifier::clear()
 int RepClassifier::mostLikelyGesture()
 {
 //    if (dtw->getDistance() < recognitionThreshold && yin->isSync())
-    if (yin->isSync()){
-        return dtw->mostLikelyGesture();
-    } else {
-        return -1;
-    }
+//     if (yin->isSync()){
+       return dtw->mostLikelyGesture();
+//     } else {
+//         return -1;
+//     }
 }
 
 double RepClassifier::getPhase()
