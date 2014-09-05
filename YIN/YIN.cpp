@@ -130,7 +130,7 @@ void YIN::process(const vector<float> &v) {
         dips[i] = -1.f;
     int detectedDips = 0;
 
-    for (int i = 0; i < maxdelay && detectedDips < minDips; i++) {
+    for (int i = 0; (i < maxdelay) && (detectedDips < minDips); i++) {
         avg = average(values, 0, min(maxdelay - 1, (i + 1) * 3));
         avgs[i] = avg;
 
@@ -154,7 +154,7 @@ void YIN::process(const vector<float> &v) {
         }
     }
 
-    sync = detectedDips >= minDips && average(values, 0, maxdelay - 1) > avgThreshold;
+    sync = (detectedDips >= minDips) && (average(values, 0, maxdelay - 1) > avgThreshold);
     if (sync)
         dip = dips[1];
     else
