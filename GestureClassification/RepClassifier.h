@@ -23,6 +23,7 @@ class RepClassifier : public AbstractGestureClassifier {
     bool stayLearning = false;
     double recognitionThreshold = 10.;
     bool recording = false;
+    bool learnGate = false;
 
 public:
     RepClassifier();
@@ -52,6 +53,9 @@ public:
     void setRecognitionThreshold(double r);
     void setResolution(int r);
     bool isLearning();
+    bool isRecording();
+    
+    void setLearningGate( bool onoff );
 
 
 private:

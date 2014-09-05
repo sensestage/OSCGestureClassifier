@@ -37,25 +37,28 @@ RepClassifier::~RepClassifier()
 
 void RepClassifier::infer(std::vector<float>& newSample)
 {
-    if (newSample.size() != dtw->getDimensions())
+    if (newSample.size() != dtw->getDimensions()){
         return;
+    }
 
-    if (!recording)
+    if (!recording){
         dtw->infer(newSample);
+    }
     yin->process(newSample);
 
-    if (dtw->getDistance() > recognitionThreshold || recording)
+    if ( (dtw->getDistance() > recognitionThreshold) || recording)
     {
         if (learning >= 0)
         {
-            if (yin->isSync())
+            if (yin->isSync() || learnGate ) // add a gate that can be set externally
             {
                 recording = true;
                 dtw->fillTemplate(learning, newSample);
-                if (dtw->templateSize(learning) > yin->getLength() && dtw->templateSize(learning) > 20)
+                if ( (dtw->templateSize(learning) > yin->getLength()) && (dtw->templateSize(learning) > 20) ) // 20 is the minimum length
                 {
                     learning = -1;
                     recording = false;
+		    learnGate = false; // turn it off when the template is recorded
                 }
             }
             else if (dtw->templateSize(learning) > 0)
@@ -65,6 +68,11 @@ void RepClassifier::infer(std::vector<float>& newSample)
             }
         }
     }
+}
+
+void RepClassifier::setLearningGate( bool onoff )
+{
+    learnGate = onoff;
 }
 
 void RepClassifier::addTemplate()
@@ -91,10 +99,11 @@ void RepClassifier::clear()
 int RepClassifier::mostLikelyGesture()
 {
 //    if (dtw->getDistance() < recognitionThreshold && yin->isSync())
-    if (yin->isSync())
+    if (yin->isSync()){
         return dtw->mostLikelyGesture();
-    else
+    } else {
         return -1;
+    }
 }
 
 double RepClassifier::getPhase()
@@ -119,8 +128,7 @@ double RepClassifier::getDistance()
 
 void RepClassifier::learn()
 {
-    if (!isLearning())
-    {
+    if (!isLearning()){
         addTemplate();
         learning = dtw->size() - 1;
     }
@@ -142,6 +150,11 @@ bool RepClassifier::isLearning()
     return learning >= 0;
 }
 
+bool RepClassifier::isRecording()
+{
+    return recording;
+}
+
 bool RepClassifier::isSync()
 {
     return yin->isSync();
@@ -149,10 +162,11 @@ bool RepClassifier::isSync()
 
 int RepClassifier::repetitionInterval()
 {
-    if(yin->isSync())
+    if(yin->isSync()){
         return yin->getLength();
-    else
+    } else {
         return -1;
+    }
 }
 
 void RepClassifier::stopLearning()
