@@ -62,8 +62,9 @@ void data_handler(const char *path, const char *types, lo_arg **argv, int argc)
         a->send("/OSCGestureClassifier/learned", "i", wasLearning);
         wasLearning = -1;
 //        rc->learn();
+    } else if ( rc->isLearning() ){
+	a->send("/OSCGestureClassifier/learning", "ii", rc->isLearning(), rc->isRecording() );
     }
-
 
     if(rc->isSync())
     {
@@ -89,6 +90,13 @@ void learn_handler(const char *path, const char *types, lo_arg **argv, int argc)
     rc->learn();
     wasLearning = rc->size()-1;
     cout << "Learning gesture " << rc->size() << "\n";
+    busy = false;
+}
+
+void learngate_handler(const char *path, const char *types, lo_arg **argv, int argc)
+{
+    busy = true;
+    rc->setLearningGate( (bool)(argv[0]->i) );
     busy = false;
 }
 
@@ -131,6 +139,7 @@ void help()
     std::cout << "Send messages:\n";
     std::cout << "/data f f f \t3-dimensional data such as accelerometer or Kinect data\n";
     std::cout << "/learn \t\tto start recording a new template on repeated movement\n";
+    std::cout << "/learn/gate i\t\tto enable recording even when no sync is there\n";
     std::cout << "/clear \t\tto clear the classifier\n";
     std::cout << "/theshold f \tto set the recognition threshold\n";
     std::cout << "\n";
@@ -186,6 +195,7 @@ int main(int argc, char** argv)
 
     st.add_method("/data","fff",data_handler);
     st.add_method("/learn","",learn_handler);
+    st.add_method("/learn/gate","i",learngate_handler);
     st.add_method("/recognize","",recognize_handler);
     st.add_method("/threshold","f",threshold_handler);
     st.add_method("/clear","",clear_handler);
