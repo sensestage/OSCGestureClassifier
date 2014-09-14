@@ -24,9 +24,12 @@ class RepClassifier : public AbstractGestureClassifier {
     double recognitionThreshold = 10.;
     bool recording = false;
     bool learnGate = false;
+    
+    int minimumTemplateSize = 30;
 
 public:
     RepClassifier();
+    RepClassifier(int ndim);
     RepClassifier(const RepClassifier& orig);
     virtual ~RepClassifier();
 
@@ -41,10 +44,20 @@ public:
     int templateSize(int i);
     int size();
     double getDistance();
+    
+    void setMinimumTemplateSize( int i );
+    int getMinimumTemplateSize();
 
     // wrapped YIN
     bool isSync();
     int repetitionInterval();
+    
+    void setAverageThreshold(float f);
+    void setDipThreshold(float f);
+    void setMaxLength(int l);
+    void setMaxDelay(int d);
+    void setMinDips(int md);
+
 
     // RepeatClassifier
     void learn();

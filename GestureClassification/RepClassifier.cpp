@@ -19,7 +19,21 @@ RepClassifier::RepClassifier()
     yin->setDipThreshold(.2);
     //    yin->setAverageThreshold(.2);
     yin->setMaxLength(20);
+    
+    minimumTemplateSize = 30;
 
+    dtw = new DtwPsClassifier();
+}
+
+RepClassifier::RepClassifier( int ndim)
+{
+    yin = new YIN(ndim);
+    yin->setDipThreshold(.2);
+    //    yin->setAverageThreshold(.2);
+    yin->setMaxLength(20);
+
+    minimumTemplateSize = 30;
+    
     dtw = new DtwPsClassifier();
 }
 
@@ -54,7 +68,7 @@ void RepClassifier::infer(std::vector<float>& newSample)
             {
                 recording = true;
                 dtw->fillTemplate(learning, newSample);
-                if ( (dtw->templateSize(learning) > yin->getLength()) && (dtw->templateSize(learning) > 20) ) // 20 is the minimum length
+                if ( (dtw->templateSize(learning) > yin->getLength()) && (dtw->templateSize(learning) > minimumTemplateSize) ) // 20 is the minimum lengt - make this a variable!
                 {
                     learning = -1;
                     recording = false;
@@ -68,6 +82,16 @@ void RepClassifier::infer(std::vector<float>& newSample)
             }
         }
     }
+}
+
+void RepClassifier::setMinimumTemplateSize( int i )
+{
+    minimumTemplateSize = i;
+}
+
+int RepClassifier::getMinimumTemplateSize()
+{
+    return minimumTemplateSize;
 }
 
 void RepClassifier::setLearningGate( bool onoff )
@@ -168,6 +192,26 @@ int RepClassifier::repetitionInterval()
         return -1;
     }
 }
+
+void RepClassifier::setAverageThreshold(float f){
+  yin->setAverageThreshold( f );
+}
+
+void RepClassifier::setDipThreshold(float f){
+  yin->setDipThreshold( f );
+}
+      
+void RepClassifier::setMaxLength(int l){
+  yin->setMaxLength( l );
+}
+void RepClassifier::setMaxDelay(int d){
+  yin->setMaxDelay( d );
+}
+    
+void RepClassifier::setMinDips(int md){
+  yin->setMinDips( md );
+}
+
 
 void RepClassifier::stopLearning()
 {

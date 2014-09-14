@@ -32,7 +32,7 @@ void data_handler(const char *path, const char *types, lo_arg **argv, int argc)
 {
   //TODO: put all data in one bundle -- but: no way to send bundles from serverthread in cpp version of liblo...
   //TODO: send messages from server thread -- no way to send bundles from serverthread?
-//     lo::Bundle() oscbundle;
+    lo::Bundle oscbundle;
     std::vector<float> vec;
     vec.push_back(argv[0]->f * scale);
     vec.push_back(argv[1]->f * scale);
@@ -46,13 +46,19 @@ void data_handler(const char *path, const char *types, lo_arg **argv, int argc)
         if(!wasDetected)
         {
             wasDetected = true;
-// 	    oscbundle->add( "/OSCGestureClassifier/detected", lo::Message( "i", 1 ) );
-            a->send_from( st, "/OSCGestureClassifier/detected","i",1);
+	    oscbundle.add( "/OSCGestureClassifier/detected", lo::Message( "i", 1 ) );
+//             a->send_from( st, "/OSCGestureClassifier/detected","i",1);
+// 	    a->send( "/OSCGestureClassifier/detected","i",1);
         }
-        a->send_from( st, "/OSCGestureClassifier/index","i",rc->mostLikelyGesture());
-	a->send_from( st, "/OSCGestureClassifier/distance","f",rc->getDistance());
-	a->send_from( st, "/OSCGestureClassifier/phase","f",rc->getPhase());
-//         a->send_from( st, lo::Bundle(
+        oscbundle.add( "/OSCGestureClassifier/index", lo::Message( "i", rc->mostLikelyGesture() ) );
+	oscbundle.add( "/OSCGestureClassifier/distance", lo::Message( "f", rc->getDistance() ) );
+	oscbundle.add( "/OSCGestureClassifier/phase", lo::Message( "f", rc->getPhase() ) );
+	oscbundle.add( "/OSCGestureClassifier/detected/all", lo::Message( "iiiff", 1, rc->isSync(), rc->mostLikelyGesture(), rc->getDistance(), rc->getPhase() ) );
+	
+//         a->send_from( st, "/OSCGestureClassifier/index","i",rc->mostLikelyGesture());
+// 	a->send_from( st, "/OSCGestureClassifier/distance","f",rc->getDistance());
+// 	a->send_from( st, "/OSCGestureClassifier/phase","f",rc->getPhase());
+//         a->send( lo::Bundle(
 //         {
 //             {"/OSCGestureClassifier/index",lo::Message("i",rc->mostLikelyGesture())},
 //             {"/OSCGestureClassifier/distance", lo::Message("f",rc->getDistance())},
@@ -62,18 +68,25 @@ void data_handler(const char *path, const char *types, lo_arg **argv, int argc)
     else if(wasDetected)
     {
         wasDetected = false;
-        a->send_from(st, "/OSCGestureClassifier/detected","i",0);
+	oscbundle.add( "/OSCGestureClassifier/detected", lo::Message( "i", 0 ) );
+//         a->send_from(st, "/OSCGestureClassifier/detected","i",0);
+// 	a->send("/OSCGestureClassifier/detected","i",0);
     }
 
 
     if(wasLearning >= 0 && !rc->isLearning())
     {
         std::cout << "Gesture learned! Length is: " << rc->templateSize(wasLearning) << "\n";
-        a->send_from( st, "/OSCGestureClassifier/learned", "i", wasLearning);
+//         a->send_from( st, "/OSCGestureClassifier/learned", "i", wasLearning);
+// 	a->send( "/OSCGestureClassifier/learned", "i", wasLearning);
+	oscbundle.add( "/OSCGestureClassifier/learned", lo::Message( "i", wasLearning ) );
+	oscbundle.add( "/OSCGestureClassifier/learning", lo::Message( "iii", rc->isLearning(), rc->isRecording(), rc->templateSize(wasLearning) ) );
         wasLearning = -1;
 //        rc->learn();
     } else if ( rc->isLearning() ){
-	a->send_from( st, "/OSCGestureClassifier/learning", "ii", rc->isLearning(), rc->isRecording() );
+// 	a->send_from( st, "/OSCGestureClassifier/learning", "ii", rc->isLearning(), rc->isRecording() );
+// 	a->send( "/OSCGestureClassifier/learning", "ii", rc->isLearning(), rc->isRecording() );
+	oscbundle.add( "/OSCGestureClassifier/learning", lo::Message( "ii", rc->isLearning(), rc->isRecording(), rc->templateSize(wasLearning) ) );
     }
 
     if(rc->isSync())
@@ -81,17 +94,27 @@ void data_handler(const char *path, const char *types, lo_arg **argv, int argc)
         if(!wasSync)
         {
             wasSync = true;
-            a->send_from( st, "/OSCGestureClassifier/repetition", "i", 1);
+//            a->send_from( st, "/OSCGestureClassifier/repetition", "i", 1);
+// 	      a->send( "/OSCGestureClassifier/repetition", "i", 1);
+	      oscbundle.add( "/OSCGestureClassifier/repetition", lo::Message( "i", 1 ) );	
         }
-        a->send_from( st, "/OSCGestureClassifier/interval","i",rc->repetitionInterval());
+//         a->send( "/OSCGestureClassifier/interval","i",rc->repetitionInterval());
+	oscbundle.add( "/OSCGestureClassifier/interval", lo::Message( "i", rc->repetitionInterval() ) );	
+	oscbundle.add( "/OSCGestureClassifier/repetition/all", lo::Message( "ii", 1, rc->repetitionInterval() ) );	
+//         a->send_from( st, "/OSCGestureClassifier/interval","i",rc->repetitionInterval());
     }
     else if(wasSync)
     {
         wasSync = false;
-        a->send_from( st, "/OSCGestureClassifier/repetition", "i", 0);
+//         a->send_from( st, "/OSCGestureClassifier/repetition", "i", 0);
+// 	a->send( "/OSCGestureClassifier/repetition", "i", 0);
+	oscbundle.add( "/OSCGestureClassifier/repetition", lo::Message( "i", 0 ) );	
     }
 
+    oscbundle.add( "/OSCGestureClassifier/update", lo::Message( "iii", rc->isSync(), wasDetected, rc->isLearning() ) );	
+//     a->send( "/OSCGestureClassifier/update", "iii",  rc->isSync(), wasDetected, rc->isLearning());
 //     a->send_from( st, oscbundle );
+    a->send( oscbundle );
     busy = false;
 }
 
@@ -101,6 +124,15 @@ void learn_handler(const char *path, const char *types, lo_arg **argv, int argc)
     rc->learn();
     wasLearning = rc->size()-1;
     cout << "Learning gesture " << rc->size() << "\n";
+    busy = false;
+}
+
+void relearn_handler(const char *path, const char *types, lo_arg **argv, int argc)
+{
+    busy = true;
+    rc->learn( (argv[0]->i) );
+    wasLearning = (argv[0]->i);
+    cout << "Relearning gesture " << (argv[0]->i) << "\n";
     busy = false;
 }
 
@@ -129,6 +161,14 @@ void clear_handler(const char *path, const char *types, lo_arg **argv, int argc)
     busy = false;
 }
 
+void minimum_template_size_handler(const char *path, const char *types, lo_arg **argv, int argc)
+{
+    busy = true;
+    rc->setMinimumTemplateSize((int)argv[0]->i);
+    cout << "minimum template size set to: " << argv[0]->i << "\n";
+    busy = false;
+}
+
 void threshold_handler(const char *path, const char *types, lo_arg **argv, int argc)
 {
     busy = true;
@@ -141,6 +181,46 @@ void quit_handler(const char *path, const char *types, lo_arg **argv, int argc)
 {
     busy = true;
     shouldQuit = true;
+    cout << "Received quit from osc " << "\n";
+    busy = false;
+}
+
+void yin_average_threshold_handler(const char *path, const char *types, lo_arg **argv, int argc)
+{
+    busy = true;
+    rc->setAverageThreshold( argv[0]->f );
+    cout << "YIN: set average threshold " << argv[0]->f << "\n";
+    busy = false;
+}
+
+void yin_dip_threshold_handler(const char *path, const char *types, lo_arg **argv, int argc)
+{
+    busy = true;
+    rc->setDipThreshold( argv[0]->f );
+    cout << "YIN: set dip threshold " << argv[0]->f << "\n";
+    busy = false;
+}
+
+void yin_max_length_handler(const char *path, const char *types, lo_arg **argv, int argc)
+{
+    busy = true;
+    rc->setMaxLength( argv[0]->i );
+    cout << "YIN: set max length " << argv[0]->i << "\n";
+    busy = false;
+}
+
+void yin_max_delay_handler(const char *path, const char *types, lo_arg **argv, int argc)
+{
+    busy = true;
+    rc->setMaxDelay( argv[0]->i );
+    cout << "YIN: set max delay " << argv[0]->i << "\n";
+    busy = false;
+}
+
+void yin_min_dips_handler(const char *path, const char *types, lo_arg **argv, int argc)
+{
+    busy = true;
+    rc->setMinDips( argv[0]->i );
     busy = false;
 }
 
@@ -215,11 +295,20 @@ int main(int argc, char** argv)
 
     st->add_method("/data","fff",data_handler);
     st->add_method("/learn","",learn_handler);
+    st->add_method("/learn/again","i",relearn_handler);
     st->add_method("/learn/gate","i",learngate_handler);
     st->add_method("/recognize","",recognize_handler);
     st->add_method("/threshold","f",threshold_handler);
+    st->add_method("/minimum_template_size","i",minimum_template_size_handler);
     st->add_method("/clear","",clear_handler);
     st->add_method("/quit","",quit_handler);
+    
+    st->add_method("/yin/average_threshold","f",yin_average_threshold_handler);
+    st->add_method("/yin/dip_threshold","f",yin_dip_threshold_handler);
+    st->add_method("/yin/max_length","i",yin_max_length_handler);
+    st->add_method("/yin/max_delay","i",yin_max_delay_handler);
+    st->add_method("/yin/min_dips","i",yin_min_dips_handler);
+    
     st->add_method(NULL,NULL,default_handler);
 
     st->start();
