@@ -26,7 +26,11 @@ RepClassifier* rc;
 lo::Address* a;
 lo::ServerThread *st;
 
-bool shouldQuit = false;
+// lo::Server *st;
+
+
+// bool shouldQuit = false;
+std::atomic<bool> shouldQuit(false);
 
 void data_handler(const char *path, const char *types, lo_arg **argv, int argc)
 {
@@ -86,7 +90,7 @@ void data_handler(const char *path, const char *types, lo_arg **argv, int argc)
     } else if ( rc->isLearning() ){
 // 	a->send_from( st, "/OSCGestureClassifier/learning", "ii", rc->isLearning(), rc->isRecording() );
 // 	a->send( "/OSCGestureClassifier/learning", "ii", rc->isLearning(), rc->isRecording() );
-	oscbundle.add( "/OSCGestureClassifier/learning", lo::Message( "ii", rc->isLearning(), rc->isRecording(), rc->templateSize(wasLearning) ) );
+	oscbundle.add( "/OSCGestureClassifier/learning", lo::Message( "iii", rc->isLearning(), rc->isRecording(), rc->templateSize(wasLearning) ) );
     }
 
     if(rc->isSync())
@@ -275,6 +279,7 @@ int main(int argc, char** argv)
 
 //     lo::ServerThread 
     st = new lo::ServerThread(myport);
+//     st = new lo::Server(myport);
     if (!st->is_valid())
     {
         std::cout << "Nope." << std::endl;
@@ -288,10 +293,10 @@ int main(int argc, char** argv)
     std::cout << "Press h for Help\n";
     std::cout << "Want to quit? Hit 'q' and Enter\n\n";
 
-    std::atomic<int> received(0);
+//     std::atomic<int> received(0);
 
     rc = new RepClassifier();
-    rc->setResolution(4);
+    rc->setResolution(6);
 
     st->add_method("/data","fff",data_handler);
     st->add_method("/learn","",learn_handler);
@@ -317,15 +322,16 @@ int main(int argc, char** argv)
     
     shouldQuit = false;
 
+    std::cout << "If you want to quit, enter 'q'\n";
     while ( !shouldQuit )
     {
-        std::cin.getline(s,10);
-        if(strcmp(s,"q")==0)
-            break;
-        else if(strcmp(s, "h")==0)
+      usleep(1000);
+//       st->recv(100);
+      std::cin.getline(s,10);
+      if(strcmp(s,"q")==0)
+	shouldQuit = true;
+      else if(strcmp(s, "h")==0)
             help();
-        else
-            std::cout << "If you want to quit, enter 'q'\n";
     }
 
     std::cout << "\nClosing time...\n";
