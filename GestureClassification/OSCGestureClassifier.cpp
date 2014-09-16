@@ -322,16 +322,16 @@ int main(int argc, char** argv)
     
     shouldQuit = false;
 
-    std::cout << "If you want to quit, enter 'q'\n";
+//     std::cout << "If you want to quit, enter 'q'\n";
     while ( !shouldQuit )
     {
       usleep(1000);
 //       st->recv(100);
-      std::cin.getline(s,10);
-      if(strcmp(s,"q")==0)
-	shouldQuit = true;
-      else if(strcmp(s, "h")==0)
-            help();
+//       std::cin.getline(s,10);
+//       if(strcmp(s,"q")==0)
+// 	shouldQuit = true;
+//       else if(strcmp(s, "h")==0)
+//             help();
     }
 
     std::cout << "\nClosing time...\n";
